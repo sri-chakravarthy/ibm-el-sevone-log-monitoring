@@ -1,0 +1,111 @@
+name: Build and Deploy RPM
+
+on:
+  push:
+    tags:
+      - 'v*'
+    branches:
+      - '**'
+
+env:
+  RUN_ON_PAS: 1
+  RUN_ON_HSA: 0
+  RUN_ON_DNC: 0
+  RUN_ON_FIPS: 0
+
+  APP_USER_USERNAME: ingestion
+  APP_USER_ID: 7001
+
+  PYSEVONE_TAG: v1.2.6
+  OPENJDK_VERSION: 8
+  PYTHON_VERSION: 3.11.3
+  SAMOSS_VERSION: 13
+  APP_NAME: ibm-el-sevone-log-monitoring
+  CONTAINER_REGISTRY: docker.s1artrtp1.s1.devit.ibm.com
+  DOCKER_BUILDKIT: 1
+  DOCKER_HOST: tcp://127.0.0.1:2375
+  DOCKER_TLS_CERTDIR: ""
+  ARTIFACTORY_URL: https://docker.s1artrtp1.s1.devit.ibm.com
+  RPM_ARTIFACTORY_REPO: proserv/customers/bt
+  RPM_NAME: IBM-SevOne-NPM-PS-Plugin-sevone-log-monitoring
+  RPM_SUFFIX: el8.x86_64.rpm
+
+jobs:
+  build-container:
+    name: Build Container
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build Container Image
+        run: |
+          podman build --tls-verify=false --network=host \
+            --build-arg PYSEVONE_TAG=${{ env.PYSEVONE_TAG }} \
+            --build-arg PYTHON_VERSION=${{ env.PYTHON_VERSION }} \
+            --build-arg CONTAINER_REGISTRY=${{ env.CONTAINER_REGISTRY }} \
+            --build-arg APP_USER_USERNAME=${{ env.APP_USER_USERNAME }} \
+            --build-arg APP_USER_ID=${{ env.APP_USER_ID }} \
+            -t ${{ env.CONTAINER_REGISTRY }}/ps/collectors/${{ env.APP_NAME }}:${{ github.ref_name }} \
+            -f deploy/Containerfile .
+
+      - name: Save Container Image
+        run: |
+          podman save ${{ env.CONTAINER_REGISTRY }}/ps/collectors/${{ env.APP_NAME }}:${{ github.ref_name }} \
+            -o build/package/rpm/SOURCES/app/${{ env.APP_NAME }}.${{ github.ref_name }}.container-image.tar
+
+      - name: Remove Intermediate Images
+        run: |
+          podman rmi ${{ env.CONTAINER_REGISTRY }}/ps/collectors/${{ env.APP_NAME }}:${{ github.ref_name }} || true
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: container-image
+          path: build/package/rpm/SOURCES/app/
+
+  build-rpm:
+    name: Build RPM
+    runs-on: ubuntu-latest
+    needs: build-container
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: container-image
+
+      - name: Build RPM
+        run: |
+          mkdir -p build/package/rpm/SOURCES/app/bin
+          cp bin/*.sh build/package/rpm/SOURCES/app/bin/
+          mkdir -p build/package/rpm/SOURCES/app/env
+          cp env/* build/package/rpm/SOURCES/app/env/
+          mkdir -p build/package/rpm/SOURCES/app/etc
+          cp etc/*.json build/package/rpm/SOURCES/app/etc/
+          cp docker-compose.yml build/package/rpm/SOURCES/app/etc/docker-compose.yml
+          cd build/package/rpm
+          rpmbuild --define "_topdir $(pwd)" -bb SPECS/app.spec
+
+      - name: Upload RPM Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rpm
+          path: build/package/rpm/RPMS
+
+  upload-rpm:
+    name: Upload RPM to Artifactory
+    runs-on: ubuntu-latest
+    needs: build-rpm
+    steps:
+      - name: Download RPM Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: rpm
+
+      - name: Upload to Artifactory
+        env:
+          ARTIFACTORY_API_KEY: ${{ secrets.ARTIFACTORY_API_KEY }}
+        run: |
+          curl -k -H "X-JFrog-Art-Api:${ARTIFACTORY_API_KEY}" \
+            -X PUT "${{ env.ARTIFACTORY_URL }}/${{ env.RPM_ARTIFACTORY_REPO }}/${{ env.RPM_NAME }}/${{ github.ref_name }}/x64/${{ env.RPM_NAME }}-${{ github.ref_name }}-1.${{ env.RPM_SUFFIX }}" \
+            -T build/package/rpm/RPMS/x86_64/${{ env.RPM_NAME }}-${{ github.ref_name }}-1.${{ env.RPM_SUFFIX }}
