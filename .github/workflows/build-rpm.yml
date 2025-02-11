@@ -37,7 +37,7 @@ jobs:
 
       - name: Save Container Image
         run: |
-          mkdir -p build/package/rpm/SOURCES
+
           podman save ${{ env.CONTAINER_REGISTRY }}/${{ env.APP_NAME }}:${{ env.CONTAINER_IMAGE_TAG }} \
             -o build/package/rpm/SOURCES/${{ env.APP_NAME }}.${{ env.CONTAINER_IMAGE_TAG }}.tar
 
