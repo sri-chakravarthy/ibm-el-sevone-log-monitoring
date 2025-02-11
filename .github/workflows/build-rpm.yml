@@ -59,6 +59,8 @@ jobs:
           name: container-image
 
 
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
       - name: Prepare RPM Sources
         run: |
