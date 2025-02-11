@@ -57,13 +57,7 @@ jobs:
         with:
           name: container-image
 
-      - name: Set up RPM Build Environment
-        run: |
-          mkdir -p build/package/rpm/SOURCES
-          mkdir -p build/package/rpm/SPECS
-          mkdir -p build/package/rpm/BUILD
-          mkdir -p build/package/rpm/RPMS
-          mkdir -p build/package/rpm/SRPMS
+
 
       - name: Prepare RPM Sources
         run: |
