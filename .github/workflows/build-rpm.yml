@@ -59,8 +59,9 @@ jobs:
           name: container-image
 
 
-      - name: Debug - List Files
-        run: ls -lah
+      - name: Debug - List Workspace Contents
+        run: ls -lahR $GITHUB_WORKSPACE
+
 
 
       - name: Prepare RPM Sources
