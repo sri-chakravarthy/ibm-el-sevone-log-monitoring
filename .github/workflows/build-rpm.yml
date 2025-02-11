@@ -62,7 +62,10 @@ jobs:
 
 
       - name: Debug - List Workspace Contents
-        run: ls -lahR $GITHUB_WORKSPACE
+        run: |
+          cd /home/runner/work/ibm-el-sevone-log-monitoring/
+          ls -lrt
+          
 
 
 
