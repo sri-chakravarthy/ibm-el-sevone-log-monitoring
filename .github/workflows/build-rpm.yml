@@ -62,9 +62,9 @@ jobs:
 
       - name: Prepare RPM Sources
         run: |
-          cp LogMonitoring.py build/package/rpm/SOURCES/
-          cp config.json build/package/rpm/SOURCES/
-          cp app.spec build/package/rpm/SPECS/
+          cp $GITHUB_WORKSPACE/LogMonitoring.py build/package/rpm/SOURCES/
+          cp $GITHUB_WORKSPACE/config.json build/package/rpm/SOURCES/
+          cp $GITHUB_WORKSPACE/app.spec build/package/rpm/SPECS/
 
       - name: Build RPM
         run: |
