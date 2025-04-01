@@ -68,7 +68,10 @@ jobs:
 
       - name: Build RPM
         run: |
-          rpmbuild --define "_topdir $(pwd)/build/package/rpm" -bb build/package/rpm/SPECS/app.spec
+          TOPDIR=$(pwd)/build/package/rpm
+          echo "Using RPM build directory: $TOPDIR"
+          ls -R $TOPDIR  # Debugging step to ensure files exist
+          rpmbuild --define "_topdir $TOPDIR" -bb $TOPDIR/SPECS/app.spec
 
       - name: Upload RPM Artifact
         uses: actions/upload-artifact@v4
