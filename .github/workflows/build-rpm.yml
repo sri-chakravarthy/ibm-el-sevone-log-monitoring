@@ -73,7 +73,6 @@ jobs:
 
       - name: Prepare RPM Sources
         run: |
-          cd /home/runner/work/ibm-el-sevone-log-monitoring/ibm-el-sevone-log-monitoring
           cp ../../package/LogMonitoring.py build/package/rpm/SOURCES/
           cp ../../package/config.json build/package/rpm/SOURCES/
           cp ../../package/app.spec build/package/rpm/SPECS/
