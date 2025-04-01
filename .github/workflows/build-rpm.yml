@@ -34,7 +34,7 @@ jobs:
             -t ${{ env.CONTAINER_REGISTRY }}/${{ env.APP_NAME }}:${{ env.CONTAINER_IMAGE_TAG }} \
             --build-arg APP_NAME=${{ env.APP_NAME }} \
             -f deploy/Containerfile .
-            
+
 
       - name: Save Container Image
         run: |
@@ -60,10 +60,10 @@ jobs:
           path: build/package/rpm/SOURCES  # Specify where to download
 
   
-      - name: Prepare RPM Sources
-        run: |
-          ls -lrt
-          cp -r src/ build/package/rpm/SOURCES/
+     # - name: Prepare RPM Sources
+     #   run: |
+     #     ls -lrt
+     #     cp -r src/ build/package/rpm/SOURCES/
   
 
       - name: Build RPM
