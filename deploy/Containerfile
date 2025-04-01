@@ -6,8 +6,8 @@ RUN apk add --no-cache bash
 
 # Copy application files
 WORKDIR /app
-COPY package/LogMonitoring.py /app/
-COPY package/config.json /app/
+COPY src/LogMonitoring.py /app/
+COPY src/config.json /app/
 
 # Install Python dependencies if required (uncomment if using requirements.txt)
 # COPY requirements.txt /app/
