@@ -34,6 +34,7 @@ jobs:
             -t ${{ env.CONTAINER_REGISTRY }}/${{ env.APP_NAME }}:${{ env.CONTAINER_IMAGE_TAG }} \
             --build-arg APP_NAME=${{ env.APP_NAME }} \
             -f deploy/Containerfile .
+            
 
       - name: Save Container Image
         run: |
