@@ -64,7 +64,10 @@ jobs:
      #   run: |
      #     ls -lrt
      #     cp -r src/ build/package/rpm/SOURCES/
-  
+      - name: Export GitHub Environment Variables
+        run: |
+          export GITHUB_REF_NAME=${{ github.ref_name }}
+          export CONTAINER_REGISTRY=${{ env.CONTAINER_REGISTRY }}
 
       - name: Build RPM
         run: |
